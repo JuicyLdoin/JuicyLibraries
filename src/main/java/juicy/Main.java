@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -32,6 +33,8 @@ public class Main {
         ImmutableList<Library> libraries = LibrariesReader.readLibraries(librariesData);
         List<File> files = Arrays.asList(Objects.requireNonNull(librariesParent.listFiles()));
 
+        List<File> toDelete = new ArrayList<>(files);
+
         libraries.forEach(library -> {
 
             String artifact = library.getArtifact();
@@ -44,16 +47,13 @@ public class Main {
             files.stream()
                     .filter(file -> file.getName().split("-")[0].equals(artifact))
                     .filter(file -> !file.getName().split("-")[1].replace(".jar", "").equals(version))
-                    .forEach(file -> {
-
-                        update.set(true);
-                        file.delete();
-
-                    });
+                    .forEach(file -> update.set(true));
 
             File file = new File(librariesParent, fileName);
 
             if (file.exists()) {
+
+                toDelete.remove(file);
 
                 System.out.println("Skip library " + fileName);
                 return;
@@ -81,6 +81,8 @@ public class Main {
                 fileOutputStream.write(bytes);
                 fileOutputStream.close();
 
+                toDelete.remove(file);
+
                 System.out.println((update.get() ? "Update" : "Download") + " library " + fileName);
 
             } catch (Exception exception) {
@@ -88,6 +90,13 @@ public class Main {
                 exception.printStackTrace();
 
             }
+        });
+
+        toDelete.forEach(file -> {
+
+            file.delete();
+            System.out.println("Delete library " + file.getName());
+
         });
     }
 }
