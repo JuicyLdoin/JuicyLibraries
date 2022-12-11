@@ -10,3 +10,5 @@ Library loader example:
   "version": "2.10"
 }
 ```
+
+After deleting .json file of library it will automatically be removed from the libraries after a restart.
